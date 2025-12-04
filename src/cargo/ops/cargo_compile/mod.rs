@@ -537,14 +537,28 @@ pub fn create_bcx<'a, 'gctx>(
     }
 
     // Validate target path for each root unit
+    let mut errs_cnt = 0;
     for unit in &units {
         if let Some(target_src_path) = unit.target.src_path().path() {
-            validate_target_path_as_source_file(
+            if let Err(err) = validate_target_path_as_source_file(
                 target_src_path,
                 unit.target.name(),
                 unit.target.kind(),
-            )?
+            ) {
+                gctx.shell().error(format!("{err}\n"))?;
+                // write!(gctx.shell().err(), "{err}\n")?;
+                errs_cnt += 1;
+            }
         }
+    }
+
+    let plural: &str = match errs_cnt {
+        0 | 1  => "",
+        _ => "s",
+    };
+
+    if errs_cnt > 0 {
+        anyhow::bail!("could not compile due to {errs_cnt} previous target resolution error{plural}");
     }
 
     if honor_rust_version.unwrap_or(true) {
