@@ -61,6 +61,7 @@ pub mod logger;
 pub mod machine_message;
 pub mod network;
 mod once;
+pub mod path;
 mod progress;
 mod queue;
 pub mod restricted_names;
