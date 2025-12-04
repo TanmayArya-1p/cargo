@@ -57,6 +57,7 @@ use crate::util::BuildLogger;
 use crate::util::context::{GlobalContext, WarningHandling};
 use crate::util::interning::InternedString;
 use crate::util::log_message::LogMessage;
+use crate::util::targets::validate_target_path_as_source_file;
 use crate::util::{CargoResult, StableHasher};
 
 mod compile_filter;
@@ -533,6 +534,27 @@ pub fn create_bcx<'a, 'gctx>(
             .entry(unit.clone())
             .or_default()
             .extend(args);
+    }
+
+    // Validate target src path for each root unit
+    let mut errs_cnt = 0;
+    for unit in &units {
+        if let Some(target_src_path) = unit.target.src_path().path() {
+            if let Err(err) = validate_target_path_as_source_file(
+                target_src_path,
+                unit.target.name(),
+                unit.target.kind(),
+            ) {
+                errs_cnt += 1;
+                gctx.shell().error(format!("{err}\n"))?;
+            }
+        }
+    }
+    if errs_cnt > 0 {
+        let plural: &str = if errs_cnt > 1 { "s" } else { "" };
+        anyhow::bail!(
+            "could not compile due to {errs_cnt} previous target resolution error{plural}"
+        );
     }
 
     if honor_rust_version.unwrap_or(true) {

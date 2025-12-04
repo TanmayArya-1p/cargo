@@ -3778,10 +3778,9 @@ fn nonexistent_target_path() {
     p.cargo("check --examples")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `examples/null.rs`: [NOT_FOUND]
+[ERROR] can't find example `bar` at path `[ROOT]/foo/examples/null.rs`
 
-[ERROR] could not compile `foo` (example "bar") due to 1 previous error
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3805,10 +3804,9 @@ fn nonexistent_target_path() {
     p.cargo("check")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+[ERROR] can't find lib `foo` at path `[ROOT]/foo/src/null.rs`
 
-[ERROR] could not compile `foo` (lib) due to 1 previous error
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3833,11 +3831,9 @@ fn nonexistent_target_path() {
     p.cargo("check")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+[ERROR] can't find bin `null` at path `[ROOT]/foo/src/null.rs`
 
-[ERROR] could not compile `foo` (bin "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3862,11 +3858,9 @@ fn nonexistent_target_path() {
     p.cargo("test")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[COMPILING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+[ERROR] can't find integration-test `null` at path `[ROOT]/foo/src/null.rs`
 
-[ERROR] could not compile `foo` (test "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3891,11 +3885,9 @@ fn nonexistent_target_path() {
     p.cargo("bench")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[COMPILING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+[ERROR] can't find bench `null` at path `[ROOT]/foo/src/null.rs`
 
-[ERROR] could not compile `foo` (bench "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3915,19 +3907,18 @@ fn directory_as_target_path() {
 
                 [[example]]
                 name = "bar"
-                path = "examples/null"
+                path = "examples/bar"
             "#,
         )
         .file("src/main.rs", "fn main() {}")
-        .file("src/null/.temp", "fn main() {}")
+        .file("examples/bar/.temp", "")
         .build();
     p.cargo("check --example bar")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `examples/null`: [NOT_FOUND]
+[ERROR] path `[ROOT]/foo/examples/bar` for example `bar` is a directory, but a source file was expected.
 
-[ERROR] could not compile `foo` (example "bar") due to 1 previous error
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3946,16 +3937,15 @@ fn directory_as_target_path() {
                 path = "src/null"
             "#,
         )
-        .file("src/lib.rs", "fn main() {}")
-        .file("src/null/.temp", "fn main() {}")
+        .file("src/lib.rs", "fn foo() {}")
+        .file("src/null/.temp", "")
         .build();
     p.cargo("check")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for lib `foo` is a directory, but a source file was expected.
 
-[ERROR] could not compile `foo` (lib) due to 1 previous error
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -3976,16 +3966,14 @@ fn directory_as_target_path() {
             "#,
         )
         .file("src/main.rs", "fn main() {}")
-        .file("src/null/.temp", "fn main() {}")
+        .file("src/null/.temp", "")
         .build();
     p.cargo("check")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for bin `null` is a directory, but a source file was expected.
 
-[ERROR] could not compile `foo` (bin "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4006,16 +3994,14 @@ fn directory_as_target_path() {
             "#,
         )
         .file("src/main.rs", "fn main() {}")
-        .file("src/null/.temp", "fn main() {}")
+        .file("src/null/.temp", "")
         .build();
     p.cargo("test")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[COMPILING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for integration-test `null` is a directory, but a source file was expected.
 
-[ERROR] could not compile `foo` (test "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4041,11 +4027,9 @@ fn directory_as_target_path() {
     p.cargo("bench")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[COMPILING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for bench `null` is a directory, but a source file was expected.
 
-[ERROR] could not compile `foo` (bench "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4069,15 +4053,15 @@ fn directory_as_target_path_with_entrypoint() {
             "#,
         )
         .file("src/main.rs", "fn main() {}")
-        .file("src/null/main.rs", "fn main() {}")
+        .file("examples/null/main.rs", "fn main() {}")
         .build();
     p.cargo("check --example bar")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `examples/null`: [NOT_FOUND]
+[ERROR] path `[ROOT]/foo/examples/null` for example `bar` is a directory, but a source file was expected.
+[HELP] specify the path to the intended entrypoint file instead: `[ROOT]/foo/examples/null/main.rs`
 
-[ERROR] could not compile `foo` (example "bar") due to 1 previous error
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4102,10 +4086,10 @@ fn directory_as_target_path_with_entrypoint() {
     p.cargo("check")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for lib `foo` is a directory, but a source file was expected.
+[HELP] specify the path to the intended entrypoint file instead: `[ROOT]/foo/src/null/lib.rs`
 
-[ERROR] could not compile `foo` (lib) due to 1 previous error
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4131,11 +4115,10 @@ fn directory_as_target_path_with_entrypoint() {
     p.cargo("check")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[CHECKING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for bin `null` is a directory, but a source file was expected.
+[HELP] specify the path to the intended entrypoint file instead: `[ROOT]/foo/src/null/main.rs`
 
-[ERROR] could not compile `foo` (bin "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4161,11 +4144,10 @@ fn directory_as_target_path_with_entrypoint() {
     p.cargo("test")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[COMPILING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for integration-test `null` is a directory, but a source file was expected.
+[HELP] specify the path to the intended entrypoint file instead: `[ROOT]/foo/src/null/main.rs`
 
-[ERROR] could not compile `foo` (test "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
@@ -4191,11 +4173,10 @@ fn directory_as_target_path_with_entrypoint() {
     p.cargo("bench")
         .with_status(101)
         .with_stderr_data(str![[r#"
-[COMPILING] foo v1.0.0 ([ROOT]/foo)
-[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+[ERROR] path `[ROOT]/foo/src/null` for bench `null` is a directory, but a source file was expected.
+[HELP] specify the path to the intended entrypoint file instead: `[ROOT]/foo/src/null/main.rs`
 
-[ERROR] could not compile `foo` (bench "null") due to 1 previous error
-[WARNING] build failed, waiting for other jobs to finish...
+[ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
         .run();
