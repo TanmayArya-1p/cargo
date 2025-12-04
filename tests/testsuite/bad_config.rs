@@ -3755,3 +3755,467 @@ please set bin.path in Cargo.toml
 "#]])
         .run();
 }
+
+
+#[cargo_test]
+fn nonexistent_target_path() {
+
+
+    // nonexistent example path
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[example]]
+                name = "bar"
+                path = "examples/null.rs"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .build();
+    p.cargo("check --examples")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `examples/null.rs`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (example "bar") due to 1 previous error
+
+"#]])
+        .run();
+
+
+    // nonexistent lib path
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [lib]
+                path = "src/null.rs"
+            "#,
+        )
+        .file("src/lib.rs", "fn main() {}")
+        .build();
+    p.cargo("check")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (lib) due to 1 previous error
+
+"#]])
+        .run();
+
+    // nonexistent bin path
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[bin]]
+                name = "null"
+                path = "src/null.rs"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .build();
+    p.cargo("check")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (bin "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+    // nonexistent test path
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[test]]
+                name = "null"
+                path = "src/null.rs"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .build();
+    p.cargo("test")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[COMPILING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (test "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+
+    // nonexistent bench path
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[bench]]
+                name = "null"
+                path = "src/null.rs"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .build();
+    p.cargo("bench")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[COMPILING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null.rs`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (bench "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+
+
+}
+
+
+#[cargo_test]
+fn directory_as_target_path() {
+
+    // example path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[example]]
+                name = "bar"
+                path = "examples/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/.temp", "fn main() {}")
+        .build();
+    p.cargo("check --example bar")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `examples/null`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (example "bar") due to 1 previous error
+
+"#]])
+        .run();
+
+
+    // lib path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [lib]
+                path = "src/null"
+            "#,
+        )
+        .file("src/lib.rs", "fn main() {}")
+        .file("src/null/.temp", "fn main() {}")
+        .build();
+    p.cargo("check")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (lib) due to 1 previous error
+
+"#]])
+        .run();
+
+    // bin path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[bin]]
+                name = "null"
+                path = "src/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/.temp", "fn main() {}")
+        .build();
+    p.cargo("check")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (bin "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+    // test path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[test]]
+                name = "null"
+                path = "src/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/.temp", "fn main() {}")
+        .build();
+    p.cargo("test")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[COMPILING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (test "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+
+    // bench path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[bench]]
+                name = "null"
+                path = "src/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/.temp", "fn main() {}")
+        .build();
+    p.cargo("bench")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[COMPILING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (bench "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+
+
+}
+
+
+#[cargo_test]
+fn directory_as_target_path_with_entrypoint() {
+    // example path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[example]]
+                name = "bar"
+                path = "examples/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/main.rs", "fn main() {}")
+        .build();
+    p.cargo("check --example bar")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `examples/null`: [NOT_FOUND]
+
+[ERROR] could not compile `foo` (example "bar") due to 1 previous error
+
+"#]])
+        .run();
+
+
+    // lib path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [lib]
+                path = "src/null"
+            "#,
+        )
+        .file("src/lib.rs", "fn main() {}")
+        .file("src/null/lib.rs", "fn main() {}")
+        .build();
+    p.cargo("check")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (lib) due to 1 previous error
+
+"#]])
+        .run();
+
+    // bin path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[bin]]
+                name = "null"
+                path = "src/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/main.rs", "fn main() {}")
+        .build();
+    p.cargo("check")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[CHECKING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (bin "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+    // test path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[test]]
+                name = "null"
+                path = "src/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/main.rs", "fn main() {}")
+        .build();
+    p.cargo("test")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[COMPILING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (test "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+
+    // bench path as directory
+    let p = project()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "1.0.0"
+                edition = "2024"
+
+                [[bench]]
+                name = "null"
+                path = "src/null"
+            "#,
+        )
+        .file("src/main.rs", "fn main() {}")
+        .file("src/null/main.rs", "fn main() {}")
+        .build();
+    p.cargo("bench")
+    .with_status(101)
+        .with_stderr_data(str![[r#"
+[COMPILING] foo v1.0.0 ([ROOT]/foo)
+[ERROR] couldn't read `src/null`: Is a directory (os error 21)
+
+[ERROR] could not compile `foo` (bench "null") due to 1 previous error
+[WARNING] build failed, waiting for other jobs to finish...
+
+"#]])
+        .run();
+
+}
