@@ -57,8 +57,8 @@ use crate::util::BuildLogger;
 use crate::util::context::{GlobalContext, WarningHandling};
 use crate::util::interning::InternedString;
 use crate::util::log_message::LogMessage;
-use crate::util::{CargoResult, StableHasher};
 use crate::util::path::validate_target_path_as_source_file;
+use crate::util::{CargoResult, StableHasher};
 
 mod compile_filter;
 use annotate_snippets::Level;
@@ -539,7 +539,11 @@ pub fn create_bcx<'a, 'gctx>(
     // Validate target path for each root unit
     for unit in &units {
         if let Some(target_src_path) = unit.target.src_path().path() {
-            validate_target_path_as_source_file(target_src_path,unit.target.name(),unit.target.kind())?
+            validate_target_path_as_source_file(
+                target_src_path,
+                unit.target.name(),
+                unit.target.kind(),
+            )?
         }
     }
 

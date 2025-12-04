@@ -1,6 +1,6 @@
-use crate::util::errors::CargoResult;
-use std::path::{Path};
 use crate::core::manifest::TargetKind;
+use crate::util::errors::CargoResult;
+use std::path::Path;
 
 // Checks if a target path exists and is a source file, not a directory
 pub fn validate_target_path_as_source_file(
@@ -20,8 +20,7 @@ pub fn validate_target_path_as_source_file(
     if path.is_dir() {
         let main_rs = path.join("main.rs");
         let lib_rs = path.join("lib.rs");
-        
-        
+
         let suggested_files_opt = match (main_rs.exists(), lib_rs.exists()) {
             (true, true) => Some(format!("`{}` or `{}`", main_rs.display(), lib_rs.display())),
             (true, false) => Some(format!("`{}`", main_rs.display())),
