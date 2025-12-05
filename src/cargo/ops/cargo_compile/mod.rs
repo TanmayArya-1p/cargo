@@ -60,7 +60,7 @@ use crate::util::log_message::LogMessage;
 use crate::util::{CargoResult, StableHasher};
 
 mod compile_filter;
-use annotate_snippets::Level;
+use annotate_snippets::{Group, Level, Origin};
 pub use compile_filter::{CompileFilter, FilterRule, LibRule};
 
 pub(super) mod unit_generator;
@@ -226,20 +226,31 @@ pub fn print<'a>(
 
 // Checks if a target path exists and is a source file, not a directory
 fn validate_target_path_as_source_file(
+    gctx: &GlobalContext,
     path: &std::path::Path,
     target_name: &str,
     target_kind: &TargetKind,
+    unit_manifest_path: &std::path::Path,
+    error_count: &mut usize,
 ) -> CargoResult<()> {
     if !path.exists() {
-        anyhow::bail!(
+        *error_count += 1;
+
+        let err_msg = format!(
             "can't find {} `{}` at path `{}`",
             target_kind.description(),
             target_name,
             path.display()
         );
-    }
 
-    if path.is_dir() {
+        let group = Group::with_title(Level::ERROR.primary_title(err_msg)).element(Origin::path(
+            unit_manifest_path.to_str().unwrap_or_default(),
+        ));
+
+        gctx.shell().print_report(&[group], true)?;
+    } else if path.is_dir() {
+        *error_count += 1;
+
         // suggest setting the path to a likely entrypoint
         let main_rs = path.join("main.rs");
         let lib_rs = path.join("lib.rs");
@@ -294,19 +305,19 @@ fn validate_target_path_as_source_file(
             "path `{}` for {} `{}` is a directory, but a source file was expected.",
             path.display(),
             target_kind.description(),
-            target_name
+            target_name,
+        );
+        let mut group = Group::with_title(Level::ERROR.primary_title(err_msg)).element(
+            Origin::path(unit_manifest_path.to_str().unwrap_or_default()),
         );
 
         if let Some(suggested_files) = suggested_files_opt {
-            anyhow::bail!(
-                "{}\n\
-                help: an entry point exists at {}",
-                err_msg,
-                suggested_files,
+            group = group.element(
+                Level::HELP.message(format!("an entry point exists at {}", suggested_files)),
             );
         }
 
-        anyhow::bail!(err_msg);
+        gctx.shell().print_report(&[group], true)?;
     }
 
     Ok(())
@@ -624,23 +635,23 @@ pub fn create_bcx<'a, 'gctx>(
     }
 
     // Validate target src path for each root unit
-    let mut errs_cnt = 0;
+    let mut error_count: usize = 0;
     for unit in &units {
         if let Some(target_src_path) = unit.target.src_path().path() {
-            if let Err(err) = validate_target_path_as_source_file(
+            validate_target_path_as_source_file(
+                gctx,
                 target_src_path,
                 unit.target.name(),
                 unit.target.kind(),
-            ) {
-                errs_cnt += 1;
-                gctx.shell().error(format!("{err}\n"))?;
-            }
+                unit.pkg.manifest_path(),
+                &mut error_count,
+            )?
         }
     }
-    if errs_cnt > 0 {
-        let plural: &str = if errs_cnt > 1 { "s" } else { "" };
+    if error_count > 0 {
+        let plural: &str = if error_count > 1 { "s" } else { "" };
         anyhow::bail!(
-            "could not compile due to {errs_cnt} previous target resolution error{plural}"
+            "could not compile due to {error_count} previous target resolution error{plural}"
         );
     }
 

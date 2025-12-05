@@ -3778,7 +3778,7 @@ fn nonexistent_example_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] can't find example `bar` at path `[ROOT]/foo/examples/null.rs`
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3806,7 +3806,7 @@ fn nonexistent_library_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] can't find lib `foo` at path `[ROOT]/foo/src/null.rs`
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3835,7 +3835,7 @@ fn nonexistent_binary_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] can't find bin `null` at path `[ROOT]/foo/src/null.rs`
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3864,7 +3864,7 @@ fn nonexistent_test_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] can't find integration-test `null` at path `[ROOT]/foo/src/null.rs`
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3893,7 +3893,7 @@ fn nonexistent_bench_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] can't find bench `null` at path `[ROOT]/foo/src/null.rs`
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3923,7 +3923,7 @@ fn directory_as_example_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/examples/bar` for example `bar` is a directory, but a source file was expected.
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3952,7 +3952,7 @@ fn directory_as_library_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for lib `foo` is a directory, but a source file was expected.
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -3982,7 +3982,7 @@ fn directory_as_binary_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for bin `null` is a directory, but a source file was expected.
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4012,7 +4012,7 @@ fn directory_as_test_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for integration-test `null` is a directory, but a source file was expected.
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4042,7 +4042,7 @@ fn directory_as_bench_target_path() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for bench `null` is a directory, but a source file was expected.
-
+ --> [ROOT]/foo/Cargo.toml
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4072,8 +4072,8 @@ fn directory_as_example_target_path_with_entrypoint() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/examples/null` for example `bar` is a directory, but a source file was expected.
-[HELP] an entry point exists at `[ROOT]/foo/examples/null/main.rs`
-
+ --> [ROOT]/foo/Cargo.toml
+  = [HELP] an entry point exists at `[ROOT]/foo/examples/null/main.rs`
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4102,8 +4102,8 @@ fn directory_as_library_target_path_with_entrypoint() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for lib `foo` is a directory, but a source file was expected.
-[HELP] an entry point exists at `[ROOT]/foo/src/null/lib.rs`
-
+ --> [ROOT]/foo/Cargo.toml
+  = [HELP] an entry point exists at `[ROOT]/foo/src/null/lib.rs`
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4133,8 +4133,8 @@ fn directory_as_binary_target_path_with_entrypoint() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for bin `null` is a directory, but a source file was expected.
-[HELP] an entry point exists at `[ROOT]/foo/src/null/main.rs`
-
+ --> [ROOT]/foo/Cargo.toml
+  = [HELP] an entry point exists at `[ROOT]/foo/src/null/main.rs`
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4164,8 +4164,8 @@ fn directory_as_test_target_path_with_entrypoint() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for integration-test `null` is a directory, but a source file was expected.
-[HELP] an entry point exists at `[ROOT]/foo/src/null/main.rs`
-
+ --> [ROOT]/foo/Cargo.toml
+  = [HELP] an entry point exists at `[ROOT]/foo/src/null/main.rs`
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
@@ -4195,8 +4195,8 @@ fn directory_as_bench_target_path_with_entrypoint() {
         .with_status(101)
         .with_stderr_data(str![[r#"
 [ERROR] path `[ROOT]/foo/src/null` for bench `null` is a directory, but a source file was expected.
-[HELP] an entry point exists at `[ROOT]/foo/src/null/main.rs`
-
+ --> [ROOT]/foo/Cargo.toml
+  = [HELP] an entry point exists at `[ROOT]/foo/src/null/main.rs`
 [ERROR] could not compile due to 1 previous target resolution error
 
 "#]])
