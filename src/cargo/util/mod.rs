@@ -69,7 +69,6 @@ mod semver_eval_ext;
 mod semver_ext;
 pub mod sqlite;
 pub mod style;
-pub mod targets;
 pub mod toml;
 pub mod toml_mut;
 mod vcs;
