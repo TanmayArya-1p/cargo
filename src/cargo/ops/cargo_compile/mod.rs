@@ -300,7 +300,7 @@ fn validate_target_path_as_source_file(
         if let Some(suggested_files) = suggested_files_opt {
             anyhow::bail!(
                 "{}\n\
-                help: specify the path to the intended entrypoint file instead: {}",
+                help: an entry point exists at {}",
                 err_msg,
                 suggested_files,
             );
