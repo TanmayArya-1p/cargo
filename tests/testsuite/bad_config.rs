@@ -3757,8 +3757,7 @@ please set bin.path in Cargo.toml
 }
 
 #[cargo_test]
-fn nonexistent_target_path() {
-    // nonexistent example path
+fn nonexistent_example_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3784,8 +3783,10 @@ fn nonexistent_target_path() {
 
 "#]])
         .run();
+}
 
-    // nonexistent lib path
+#[cargo_test]
+fn nonexistent_library_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3810,8 +3811,10 @@ fn nonexistent_target_path() {
 
 "#]])
         .run();
+}
 
-    // nonexistent bin path
+#[cargo_test]
+fn nonexistent_binary_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3837,8 +3840,10 @@ fn nonexistent_target_path() {
 
 "#]])
         .run();
+}
 
-    // nonexistent test path
+#[cargo_test]
+fn nonexistent_test_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3864,8 +3869,10 @@ fn nonexistent_target_path() {
 
 "#]])
         .run();
+}
 
-    // nonexistent bench path
+#[cargo_test]
+fn nonexistent_bench_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3894,8 +3901,7 @@ fn nonexistent_target_path() {
 }
 
 #[cargo_test]
-fn directory_as_target_path() {
-    // example path as directory
+fn directory_as_example_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3922,8 +3928,10 @@ fn directory_as_target_path() {
 
 "#]])
         .run();
+}
 
-    // lib path as directory
+#[cargo_test]
+fn directory_as_library_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3949,8 +3957,10 @@ fn directory_as_target_path() {
 
 "#]])
         .run();
+}
 
-    // bin path as directory
+#[cargo_test]
+fn directory_as_binary_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -3977,8 +3987,10 @@ fn directory_as_target_path() {
 
 "#]])
         .run();
+}
 
-    // test path as directory
+#[cargo_test]
+fn directory_as_test_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -4005,8 +4017,10 @@ fn directory_as_target_path() {
 
 "#]])
         .run();
+}
 
-    // bench path as directory
+#[cargo_test]
+fn directory_as_bench_target_path() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -4036,8 +4050,7 @@ fn directory_as_target_path() {
 }
 
 #[cargo_test]
-fn directory_as_target_path_with_entrypoint() {
-    // example path as directory
+fn directory_as_example_target_path_with_entrypoint() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -4065,8 +4078,10 @@ fn directory_as_target_path_with_entrypoint() {
 
 "#]])
         .run();
+}
 
-    // lib path as directory
+#[cargo_test]
+fn directory_as_library_target_path_with_entrypoint() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -4093,8 +4108,10 @@ fn directory_as_target_path_with_entrypoint() {
 
 "#]])
         .run();
+}
 
-    // bin path as directory
+#[cargo_test]
+fn directory_as_binary_target_path_with_entrypoint() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -4122,8 +4139,10 @@ fn directory_as_target_path_with_entrypoint() {
 
 "#]])
         .run();
+}
 
-    // test path as directory
+#[cargo_test]
+fn directory_as_test_target_path_with_entrypoint() {
     let p = project()
         .file(
             "Cargo.toml",
@@ -4151,8 +4170,10 @@ fn directory_as_target_path_with_entrypoint() {
 
 "#]])
         .run();
+}
 
-    // bench path as directory
+#[cargo_test]
+fn directory_as_bench_target_path_with_entrypoint() {
     let p = project()
         .file(
             "Cargo.toml",
