@@ -55,7 +55,7 @@ pub fn clean(ws: &Workspace<'_>, opts: &CleanOptions<'_>) -> CargoResult<()> {
     // TODO: validate if target_dir is not a file?
 
     if opts.explicit_target_dir_arg {
-        // if target_dir was passed explicitely via --target-dir, then hard error if validation fails
+        // if target_dir was passed explicitly via --target-dir, then hard error if validation fails
         validate_target_dir_tag(target_dir.as_path_unlocked())?;
     } else if gctx.target_dir()?.is_some() {
         // target_dir was set via env or build config
