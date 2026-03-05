@@ -13,6 +13,7 @@ use indexmap::{IndexMap, IndexSet};
 
 use std::ffi::OsString;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -30,6 +31,8 @@ pub struct CleanOptions<'gctx> {
     pub doc: bool,
     /// If set, doesn't delete anything.
     pub dry_run: bool,
+    /// true if target-dir was was explicitly specified via --target-dir
+    pub explicit_target_dir_arg: bool,
 }
 
 pub struct CleanContext<'gctx> {
@@ -48,6 +51,26 @@ pub fn clean(ws: &Workspace<'_>, opts: &CleanOptions<'_>) -> CargoResult<()> {
     let gctx = opts.gctx;
     let mut clean_ctx = CleanContext::new(gctx);
     clean_ctx.dry_run = opts.dry_run;
+
+    // TODO: validate if target_dir is not a file?
+
+    if opts.explicit_target_dir_arg {
+        // if target_dir was passed explicitely via --target-dir, then hard error if validation fails
+        validate_target_dir_tag(target_dir.as_path_unlocked())?;
+    } else if gctx.target_dir()?.is_some() {
+        // target_dir was set via env or build config
+        if let Err(err) = validate_target_dir_tag(target_dir.as_path_unlocked()) {
+            use annotate_snippets::Level;
+            gctx.shell().print_report(
+                &[Level::WARNING
+                    .secondary_title(format!("{err:#}"))
+                    .element(Level::NOTE.message(
+                        "this may become a hard error in the future; see <https://github.com/rust-lang/cargo/issues/9192>",
+                    ))],
+                false,
+            )?;
+        }
+    }
 
     if opts.doc {
         if !opts.spec.is_empty() {
@@ -102,6 +125,54 @@ pub fn clean(ws: &Workspace<'_>, opts: &CleanOptions<'_>) -> CargoResult<()> {
     }
 
     clean_ctx.display_summary()?;
+    Ok(())
+}
+
+fn validate_target_dir_tag(target_dir_path: &Path) -> CargoResult<()> {
+    const TAG_SIGNATURE: &[u8] = b"Signature: 8a477f597d28d172789f06886806bc55";
+
+    // if the path is not a dir then don't do anything
+    if !target_dir_path.is_dir() {
+        return Ok(());
+    }
+
+    let tag_path = target_dir_path.join("CACHEDIR.TAG");
+
+    // per https://bford.info/cachedir the tag file must not be a symlink
+    if tag_path.is_symlink() {
+        bail!(
+            "Cannot clean `{}`: `CACHEDIR.TAG` is a symbolic link. The CACHEDIR.TAG file must be a regular file, not a symlink.\n\
+            This directory does not appear to be a valid Cargo target directory.",
+            tag_path.display()
+        );
+    }
+
+    if !tag_path.is_file() {
+        bail!(
+            "Cannot clean `{}`: missing or invalid `CACHEDIR.TAG` file.\n\
+            This directory does not appear to be a valid Cargo target directory.\n\
+            Cleaning has been aborted to prevent accidental deletion of unrelated files.",
+            target_dir_path.display()
+        );
+    }
+
+    let mut file = fs::File::open(&tag_path)
+        .map_err(|e| anyhow::anyhow!("failed to open `{}`: {}", tag_path.display(), e))?;
+
+    let mut buf = [0u8; TAG_SIGNATURE.len()];
+    let bytes_read = file
+        .read(&mut buf)
+        .map_err(|e| anyhow::anyhow!("failed to read `{}`: {}", tag_path.display(), e))?;
+
+    if bytes_read != TAG_SIGNATURE.len() || &buf[..] != TAG_SIGNATURE {
+        bail!(
+            "Cannot clean `{}`: invalid signature in `CACHEDIR.TAG` file.\n\
+            This directory does not appear to be a valid Cargo target directory.\n\
+            Cleaning has been aborted to prevent accidental deletion of unrelated files.",
+            target_dir_path.display()
+        );
+    }
+
     Ok(())
 }
 
